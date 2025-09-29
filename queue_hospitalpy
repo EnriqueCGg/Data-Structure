@@ -1,0 +1,54 @@
+
+class Patient():
+    def __init__(self):
+        self.normal_patient = []
+        self.critical_patient = []
+        
+    def isempty(self):
+        if len(self.critical_patient) == 0:
+            #print("No critical patients")
+            return True
+        
+    def add_patient(self, name, ptype):
+        if ptype == "critical":
+            self.critical_patient.append(name)
+        if ptype == "normal":
+            self.normal_patient.append(name)
+
+    def attend_patient(self):
+        if not self.isempty():
+            print(f"Next patient (Critical): {self.critical_patient[-1]}")
+            self.critical_patient.pop()
+        else:
+            print(f"Next patient (Normal): {self.normal_patient[0]}")
+            self.normal_patient.pop(0)
+
+    def show_status(self):
+        if not self.isempty():
+            print(f"All patients: {self.critical_patient + self.normal_patient}")
+
+p = Patient()
+
+while(True):
+    selection = int(input("Select yout option: \n1. Add patient\n2. Attend patient\n3. Show status:\n > "))
+    if selection == 1:
+        name = input("Patient name: ")
+        if name == "x":
+            break
+
+        pstatus = int(input("Patient status: \n1.Normal\n2. Critical\n > "))
+        if pstatus == 1:
+            ptype = "normal"
+        else:
+            ptype = "critical"
+
+        p.add_patient(name, ptype)
+
+    elif selection == 2:
+        p.attend_patient()
+        
+    elif selection == 3:
+        p.show_status()
+    
+    else:
+        break

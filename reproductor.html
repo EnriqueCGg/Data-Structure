@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Reproductor de Música Circular</title>
+		<style>
+			/* --- Estilos Generales --- */
+			@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+			:root {
+				--bg-color: #121212;
+				--primary-color: #1db954;
+				--card-bg-color: #282828;
+				--text-color: #ffffff;
+				--text-muted-color: #b3b3b3;
+			}
+
+			body {
+				font-family: 'Roboto', sans-serif;
+				background-color: var(--bg-color);
+				color: var(--text-color);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				margin: 0;
+			}
+
+			/* --- Contenedor Principal del Reproductor --- */
+			.player-container {
+				background-color: var(--card-bg-color);
+				padding: 2rem;
+				border-radius: 12px;
+				box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+				width: 90%;
+				max-width: 400px;
+				text-align: center;
+			}
+
+			h2 {
+				margin-top: 0;
+				color: var(--primary-color);
+			}
+
+			/* --- Pantalla de la Canción Actual --- */
+			#current-song-display {
+				background-color: rgba(0, 0, 0, 0.2);
+				border-radius: 8px;
+				padding: 1rem;
+				margin: 1.5rem 0;
+				min-height: 50px;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#current-song-display .song-title {
+				font-size: 1.2rem;
+				font-weight: bold;
+			}
+
+			#current-song-display .placeholder {
+				color: var(--text-muted-color);
+			}
+
+			/* --- Controles (Botones) --- */
+			.controls {
+				display: flex;
+				justify-content: center;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+			}
+
+			.controls button {
+				background-color: var(--primary-color);
+				color: var(--text-color);
+				border: none;
+				border-radius: 50%;
+				width: 50px;
+				height: 50px;
+				font-size: 1.5rem;
+				cursor: pointer;
+				transition: background-color 0.2s ease;
+			}
+
+			.controls button:hover {
+				background-color: #1ed760;
+			}
+
+			/* --- Formulario para Añadir Canción --- */
+			.add-song-form {
+				display: flex;
+				gap: 0.5rem;
+				margin-bottom: 1.5rem;
+			}
+
+			#song-input {
+				flex-grow: 1;
+				padding: 0.75rem;
+				border: 1px solid #404040;
+				border-radius: 6px;
+				background-color: #333;
+				color: var(--text-color);
+				font-size: 1rem;
+			}
+
+			#add-btn {
+				padding: 0.75rem 1rem;
+				border: none;
+				border-radius: 6px;
+				background-color: #535353;
+				color: var(--text-color);
+				font-weight: bold;
+				cursor: pointer;
+				transition: background-color 0.2s ease;
+			}
+
+			#add-btn:hover {
+				background-color: #737373;
+			}
+
+			/* --- Vista de la Playlist --- */
+			#playlist-list {
+				list-style: none;
+				padding: 0;
+				max-height: 150px;
+				overflow-y: auto;
+				text-align: left;
+			}
+
+			#playlist-list li {
+				padding: 0.75rem;
+				border-bottom: 1px solid #404040;
+				transition: background-color 0.2s ease;
+			}
+
+			#playlist-list li:last-child {
+				border-bottom: none;
+			}
+
+			#playlist-list li.active {
+				background-color: rgba(29, 185, 84, 0.3);
+				color: var(--primary-color);
+				font-weight: bold;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="player-container">
+			<h2>Reproductor de Música 🎵</h2>
+
+			<div id="current-song-display">
+				<span class="placeholder">Añade una canción para empezar</span>
+			</div>
+
+			<div class="controls">
+				<button id="prev-btn">◀</button>
+				<button id="next-btn">▶</button>
+			</div>
+
+			<div class="add-song-form">
+				<input
+					type="text"
+					id="song-input"
+					placeholder="Ej: Bohemian Rhapsody" />
+				<button id="add-btn">Añadir</button>
+			</div>
+
+			<div class="playlist-view">
+				<h3>Playlist</h3>
+				<ol id="playlist-list"></ol>
+			</div>
+		</div>
+
+		<script>
+			// Lógica del reproductor en JavaScript
+			class Playlist {
+				constructor() {
+					this.songs = [];
+					this.currentIndex = -1;
+				}
+
+				addSong(title) {
+					if (title.trim() === '') return;
+					this.songs.push(title);
+					if (this.currentIndex === -1) {
+						this.currentIndex = 0;
+					}
+				}
+
+				isEmpty() {
+					return this.songs.length === 0;
+				}
+
+				next() {
+					if (this.isEmpty()) return;
+					this.currentIndex = (this.currentIndex + 1) % this.songs.length;
+				}
+
+				previous() {
+					if (this.isEmpty()) return;
+					// Se suma el total para asegurar un resultado positivo antes del módulo
+					this.currentIndex =
+						(this.currentIndex - 1 + this.songs.length) % this.songs.length;
+				}
+
+				getCurrentSong() {
+					return this.isEmpty() ? null : this.songs[this.currentIndex];
+				}
+			}
+
+			// --- Conexión con el HTML (DOM) ---
+			document.addEventListener('DOMContentLoaded', () => {
+				const playlist = new Playlist();
+
+				// Elementos del DOM
+				const currentSongDisplay = document.getElementById(
+					'current-song-display'
+				);
+				const prevBtn = document.getElementById('prev-btn');
+				const nextBtn = document.getElementById('next-btn');
+				const songInput = document.getElementById('song-input');
+				const addBtn = document.getElementById('add-btn');
+				const playlistList = document.getElementById('playlist-list');
+
+				// Función para actualizar toda la interfaz
+				function render() {
+					// Actualizar la pantalla principal
+					const currentSong = playlist.getCurrentSong();
+					if (currentSong) {
+						currentSongDisplay.innerHTML = `<span class="song-title">${currentSong}</span>`;
+					} else {
+						currentSongDisplay.innerHTML = `<span class="placeholder">Añade una canción para empezar</span>`;
+					}
+
+					// Actualizar la lista de la playlist
+					playlistList.innerHTML = '';
+					playlist.songs.forEach((song, index) => {
+						const li = document.createElement('li');
+						li.textContent = song;
+						if (index === playlist.currentIndex) {
+							li.classList.add('active');
+						}
+						playlistList.appendChild(li);
+					});
+				}
+
+				// --- Event Listeners ---
+				addBtn.addEventListener('click', () => {
+					playlist.addSong(songInput.value);
+					songInput.value = ''; // Limpiar el input
+					render();
+				});
+
+				songInput.addEventListener('keydown', (event) => {
+					if (event.key === 'Enter') {
+						addBtn.click(); // Simular clic en el botón
+					}
+				});
+
+				nextBtn.addEventListener('click', () => {
+					playlist.next();
+					render();
+				});
+
+				prevBtn.addEventListener('click', () => {
+					playlist.previous();
+					render();
+				});
+
+				render(); // Render inicial
+			});
+		</script>
+	</body>
+</html>

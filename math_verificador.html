@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="UTF-8" />
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0" />
+		<title>Verificador de Expresiones</title>
+		<style>
+			/* --- Estilos Generales --- */
+			@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Roboto:wght@400;700&display=swap');
+
+			:root {
+				--bg-color: #f0f2f5;
+				--card-color: #ffffff;
+				--text-color: #333333;
+				--border-color: #d9d9d9;
+				--primary-color: #007bff;
+				--success-color: #28a745;
+				--error-color: #dc3545;
+			}
+
+			body {
+				font-family: 'Roboto', sans-serif;
+				background-color: var(--bg-color);
+				color: var(--text-color);
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				height: 100vh;
+				margin: 0;
+				padding: 1rem;
+			}
+
+			/* --- Contenedor Principal --- */
+			.container {
+				background-color: var(--card-color);
+				padding: 2rem;
+				border-radius: 12px;
+				box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+				width: 100%;
+				max-width: 500px;
+			}
+
+			h2 {
+				text-align: center;
+				margin-top: 0;
+				margin-bottom: 1rem;
+				color: var(--text-color);
+			}
+
+			p {
+				text-align: center;
+				color: #666;
+				margin-bottom: 2rem;
+			}
+
+			/* --- Área de Texto y Botón --- */
+			textarea {
+				width: 100%;
+				height: 120px;
+				padding: 0.75rem;
+				border: 1px solid var(--border-color);
+				border-radius: 8px;
+				font-family: 'Fira Code', monospace;
+				font-size: 1rem;
+				resize: vertical;
+				box-sizing: border-box; /* Asegura que el padding no afecte el ancho total */
+			}
+
+			button {
+				display: block;
+				width: 100%;
+				padding: 0.85rem;
+				margin-top: 1rem;
+				border: none;
+				border-radius: 8px;
+				background-color: var(--primary-color);
+				color: white;
+				font-size: 1rem;
+				font-weight: bold;
+				cursor: pointer;
+				transition: background-color 0.2s ease;
+			}
+
+			button:hover {
+				background-color: #0056b3;
+			}
+
+			/* --- Pantalla de Resultado --- */
+			#result-display {
+				margin-top: 1.5rem;
+				padding: 1rem;
+				border-radius: 8px;
+				font-weight: bold;
+				text-align: center;
+				font-size: 1.1rem;
+				display: none; /* Oculto por defecto */
+			}
+
+			#result-display.balanced {
+				background-color: #e9f7ef;
+				color: var(--success-color);
+				border: 1px solid var(--success-color);
+			}
+
+			#result-display.error {
+				background-color: #fbebed;
+				color: var(--error-color);
+				border: 1px solid var(--error-color);
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container">
+			<h2>Verificador de Paréntesis 📐</h2>
+			<p>
+				Ingresa una expresión para validar si sus paréntesis están correctamente
+				balanceados.
+			</p>
+
+			<textarea
+				id="expression-input"
+				placeholder="(a + b) * (c - (d * e))"></textarea>
+
+			<button id="verify-btn">Verificar</button>
+
+			<div id="result-display"></div>
+		</div>
+
+		<script>
+			// Lógica del verificador en JavaScript
+			function verifyParentheses(expression) {
+				const stack = []; // Usamos un array como pila
+
+				for (const char of expression) {
+					if (char === '(') {
+						stack.push(char);
+					} else if (char === ')') {
+						if (stack.length === 0) {
+							// Error: Se encontró un ')' sin un '(' que lo abra
+							return "Error: Hay un paréntesis de cierre ')' sin su par de apertura.";
+						}
+						stack.pop();
+					}
+				}
+
+				// Al final, la pila debe estar vacía para que sea balanceado
+				if (stack.length === 0) {
+					return 'Expresión Balanceada';
+				} else {
+					return "Error: Hay un paréntesis de apertura '(' que nunca se cerró.";
+				}
+			}
+
+			// --- Conexión con el HTML (DOM) ---
+			document.addEventListener('DOMContentLoaded', () => {
+				const expressionInput = document.getElementById('expression-input');
+				const verifyBtn = document.getElementById('verify-btn');
+				const resultDisplay = document.getElementById('result-display');
+
+				verifyBtn.addEventListener('click', () => {
+					const expression = expressionInput.value;
+					const result = verifyParentheses(expression);
+
+					// Mostrar el resultado y aplicar estilos
+					resultDisplay.textContent = result;
+					resultDisplay.style.display = 'block';
+
+					// Quitar clases previas
+					resultDisplay.classList.remove('balanced', 'error');
+
+					// Añadir la clase correcta según el resultado
+					if (result.startsWith('Error')) {
+						resultDisplay.classList.add('error');
+					} else {
+						resultDisplay.classList.add('balanced');
+					}
+				});
+			});
+		</script>
+	</body>
+</html>
